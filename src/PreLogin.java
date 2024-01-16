@@ -134,12 +134,10 @@ public class PreLogin extends JPanel {
                 database.connect();
 
                 int id_sztuki = sztuka.getId();
-                System.out.println("ID sztuki: " + sztuka.getId());
                 String query = "SELECT * FROM SztukaPoId(?)";
                 PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
                 preparedStatement.setInt(1, id_sztuki);
                 ResultSet resultSet = preparedStatement.executeQuery();
-                System.out.println(preparedStatement);
 
                 StringBuilder message = new StringBuilder();
                 message.append("Informacje o sztuce: \n")
@@ -153,27 +151,35 @@ public class PreLogin extends JPanel {
                 database.disconnect();
                 database.connect();
 
-                System.out.println("ID sztuki: " + sztuka.getId());
                 query = "SELECT * FROM ObsadaPoId(?)";
                 preparedStatement = database.getConnection().prepareStatement(query);
                 preparedStatement.setInt(1, id_sztuki);
                 ResultSet resultSet2 = preparedStatement.executeQuery();
-                System.out.println(preparedStatement);
-                System.out.println(resultSet2);
 
                 while (resultSet2.next()) {
-                    System.out.println("Row in ObsadaPoId result set:");
                     String postac = resultSet2.getString("postac");
                     String imie_aktora = resultSet2.getString("imie_aktora");
                     String nazwisko_aktora = resultSet2.getString("nazwisko_aktora");
 
-                    System.out.println("Postać: " + postac + ", Grana przez: " + imie_aktora + " " + nazwisko_aktora);
-
-
                     message.append("Postać: ").append(postac).append(", Grana przez: ").append(imie_aktora).append(" ").append(nazwisko_aktora).append("\n");
                 }
 
-                JOptionPane.showMessageDialog(this, message.toString(), "Informator", JOptionPane.INFORMATION_MESSAGE);
+                // Create a panel to hold the message and the purchase button
+                JPanel panel = new JPanel(new BorderLayout());
+                JTextArea textArea = new JTextArea(message.toString());
+                textArea.setEditable(false);
+                panel.add(new JScrollPane(textArea), BorderLayout.CENTER);
+
+                // Add the ticket purchase button to the panel
+                JButton purchaseButton = new JButton("Zakup Biletów");
+                panel.add(purchaseButton, BorderLayout.SOUTH);
+
+                // Set an action listener for the purchase button
+                purchaseButton.addActionListener(e -> purchaseTickets(id_sztuki));
+
+                // Display the message panel including the ticket purchase button
+                JOptionPane.showMessageDialog(this, panel, "Informator", JOptionPane.INFORMATION_MESSAGE);
+
             } finally {
                 database.disconnect();
             }
@@ -183,11 +189,16 @@ public class PreLogin extends JPanel {
         }
     }
 
+
     private void purchaseTickets(int id_sztuki) {
-        // Implement the logic to handle ticket purchase
-        // You can open a new window or perform any other action based on your requirements
-        // Modify this method according to your needs
-        JOptionPane.showMessageDialog(this, "Ticket purchase logic for SztukaTeatralna with ID: " + id_sztuki);
+        String input = JOptionPane.showInputDialog(this, "Ile biletów chcesz kupić?");
+        try {
+            int numberOfTickets = Integer.parseInt(input);
+            // Now you have the number of tickets selected by the user, and you can proceed with your logic
+            JOptionPane.showMessageDialog(this, "Zakupiono " + numberOfTickets + " biletów dla sztuki o ID: " + id_sztuki);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Wprowadź poprawną liczbę biletów.");
+        }
     }
 
 

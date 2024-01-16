@@ -16,6 +16,7 @@ public class PostLogin extends JPanel {
     private JButton zobaczAktoraButton;
     private JButton dodajSztukeButton;
     private JButton dodajObsadeButton;
+    private JButton dodajTerminyButton;
     private JButton nowyAktorButton;
     private JButton nowyRezyserButton;
     private JButton restartButton;
@@ -31,7 +32,7 @@ public class PostLogin extends JPanel {
 
         // Przyciski w pionie
         JPanel buttonPanelLeft = new JPanel(new GridLayout(4, 1));
-        JPanel buttonPanelRight = new JPanel(new GridLayout(5, 1));
+        JPanel buttonPanelRight = new JPanel(new GridLayout(6, 1));
         pobierzHarmonogramButton = new JButton("Pobierz Harmonogram");
         zobaczAktoraButton = new JButton("Zobacz Aktorów");
         zobaczRezyseraButton = new JButton("Zobacz Rezyserów");
@@ -39,6 +40,7 @@ public class PostLogin extends JPanel {
 
         dodajSztukeButton = new JButton("Dodaj Sztukę");
         dodajObsadeButton = new JButton("Dodaj obsadę do sztuki");
+        dodajTerminyButton = new JButton("Ustal terminy dla sztuki");
         nowyAktorButton = new JButton("nowy Aktor");
         nowyRezyserButton = new JButton("nowy reżyser");
         restartButton = new JButton("Restart bazy");
@@ -51,6 +53,7 @@ public class PostLogin extends JPanel {
 
         dodajSztukeButton.addActionListener(e -> dodajSztuke());
         dodajObsadeButton.addActionListener(e -> dodajObsade());
+        dodajTerminyButton.addActionListener(e -> noweTerminy());
         nowyAktorButton.addActionListener(e -> nowyAktor());
         nowyRezyserButton.addActionListener(e -> nowyRezyser());
         restartButton.addActionListener(e -> restart());
@@ -62,6 +65,7 @@ public class PostLogin extends JPanel {
 
         buttonPanelRight.add(dodajSztukeButton);
         buttonPanelRight.add(dodajObsadeButton);
+        buttonPanelRight.add(dodajTerminyButton);
         buttonPanelRight.add(nowyAktorButton);
         buttonPanelRight.add(nowyRezyserButton);
         buttonPanelRight.add(restartButton);
@@ -102,12 +106,13 @@ public class PostLogin extends JPanel {
                 while (resultSet.next()) {
                     int id = resultSet.getInt("id_sztuki");
                     String tytul = resultSet.getString("tytul_sztuki");
+                    String informator = resultSet.getString("informator");
                     String imieRezysera = resultSet.getString("imie_rezysera");
                     String nazwiskoRezysera = resultSet.getString("nazwisko_rezysera");
                     String d = resultSet.getString("data_realizacji");
                     String miejsce = resultSet.getString("miejsce_realizacji");
 
-                    SztukaTeatralna sztuka = new SztukaTeatralna(id, tytul, " ", new Rezyser(imieRezysera, nazwiskoRezysera, 0), d, miejsce);
+                    SztukaTeatralna sztuka = new SztukaTeatralna(id, tytul, informator, new Rezyser(imieRezysera, nazwiskoRezysera, 0), d, miejsce);
                     sztuki.add(sztuka);
 
                     model.addRow(new Object[]{tytul, imieRezysera + " " + nazwiskoRezysera, d, miejsce, "Informator"});
@@ -158,21 +163,52 @@ public class PostLogin extends JPanel {
             try {
                 database.connect();
 
-                // Call the SztukaPoId function
+                int id_sztuki = sztuka.getId();
                 String query = "SELECT * FROM SztukaPoId(?)";
                 PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
-                preparedStatement.setInt(1, sztuka.getId());
+                preparedStatement.setInt(1, id_sztuki);
                 ResultSet resultSet = preparedStatement.executeQuery();
 
                 StringBuilder message = new StringBuilder();
                 message.append("Informacje o sztuce: \n")
                         .append("tytul: ").append(sztuka.getTytul()).append("\n")
-                        .append("informator: ").append(sztuka.getInformator()).append("\n")
+                        .append(sztuka.getInformator()).append("\n")
                         .append("rezyser: ").append(sztuka.getRezyser().toString()).append("\n")
                         .append("miejsce realizacji: ").append(sztuka.getMiejsce()).append("\n")
-                        .append("data: ").append(sztuka.getData()).append("\n");
+                        .append("data: ").append(sztuka.getData()).append("\n")
+                        .append("\nObsada\n");
 
-                JOptionPane.showMessageDialog(this, message.toString(), "Informator", JOptionPane.INFORMATION_MESSAGE);
+                database.disconnect();
+                database.connect();
+
+                query = "SELECT * FROM ObsadaPoId(?)";
+                preparedStatement = database.getConnection().prepareStatement(query);
+                preparedStatement.setInt(1, id_sztuki);
+                ResultSet resultSet2 = preparedStatement.executeQuery();
+
+                while (resultSet2.next()) {
+                    String postac = resultSet2.getString("postac");
+                    String imie_aktora = resultSet2.getString("imie_aktora");
+                    String nazwisko_aktora = resultSet2.getString("nazwisko_aktora");
+
+                    message.append("Postać: ").append(postac).append(", Grana przez: ").append(imie_aktora).append(" ").append(nazwisko_aktora).append("\n");
+                }
+
+                // Create a panel to hold the message and the purchase button
+                JPanel panel = new JPanel(new BorderLayout());
+                JTextArea textArea = new JTextArea(message.toString());
+                textArea.setEditable(false);
+                panel.add(new JScrollPane(textArea), BorderLayout.CENTER);
+
+                // Add the ticket purchase button to the panel
+                JButton purchaseButton = new JButton("Zakup Biletów");
+                panel.add(purchaseButton, BorderLayout.SOUTH);
+
+                // Set an action listener for the purchase button
+                purchaseButton.addActionListener(e -> purchaseTickets(id_sztuki));
+
+                // Display the message panel including the ticket purchase button
+                JOptionPane.showMessageDialog(this, panel, "Informator", JOptionPane.INFORMATION_MESSAGE);
 
             } finally {
                 database.disconnect();
@@ -180,6 +216,18 @@ public class PostLogin extends JPanel {
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error retrieving informator information: " + e.getMessage());
+        }
+    }
+
+
+    private void purchaseTickets(int id_sztuki) {
+        String input = JOptionPane.showInputDialog(this, "Ile biletów chcesz kupić?");
+        try {
+            int numberOfTickets = Integer.parseInt(input);
+            // Now you have the number of tickets selected by the user, and you can proceed with your logic
+            JOptionPane.showMessageDialog(this, "Zakupiono " + numberOfTickets + " biletów dla sztuki o ID: " + id_sztuki);
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(this, "Wprowadź poprawną liczbę biletów.");
         }
     }
 
@@ -548,6 +596,10 @@ public class PostLogin extends JPanel {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Błąd podczas łączenia z bazą danych: " + e.getMessage());
         }
+    }
+
+    private void noweTerminy(){
+        JOptionPane.showMessageDialog(this, "w implementacji");
     }
 
     private void restart(){
