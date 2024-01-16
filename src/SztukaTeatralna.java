@@ -8,7 +8,7 @@ public class SztukaTeatralna {
     private Obsada obsada;
 
     public SztukaTeatralna(int id, String t, String info, Rezyser rez, String d, String miejsce){
-        id = id;
+        this.id = id;
         tytul = t;
         rezyser = rez;
         informator = info;
