@@ -74,3 +74,26 @@ BEGIN
         st.id_rezysera = rezyser_id;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION ObsadaPoId(sztuka_id INT)
+RETURNS TABLE (
+    postac VARCHAR(255),
+    imie_aktora VARCHAR(50),
+    nazwisko_aktora VARCHAR(50)
+)
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        os.postac,
+        a.imie,
+        a.nazwisko
+    FROM
+        ObsadaSztuki os
+    INNER JOIN
+        Aktorzy a ON os.id_aktora = a.id_aktora
+    WHERE
+        os.id_sztuki = sztuka_id;
+END;
+$$ LANGUAGE plpgsql;
+

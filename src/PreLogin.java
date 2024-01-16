@@ -52,7 +52,7 @@ public class PreLogin extends JPanel {
     private void pobierzHarmonogram() {
         try {
             DataBase database = new DataBase();
-            sztuki = new ArrayList<>(); // Initialize the sztuki list
+            sztuki = new ArrayList<>();
             try {
                 database.connect();
 
@@ -63,7 +63,7 @@ public class PreLogin extends JPanel {
                 DefaultTableModel model = new DefaultTableModel() {
                     @Override
                     public boolean isCellEditable(int row, int column) {
-                        return column == 4; // Make only the "Informator" column editable
+                        return column == 4;
                     }
                 };
                 model.addColumn("Tytuł");
@@ -75,12 +75,13 @@ public class PreLogin extends JPanel {
                 while (resultSet.next()) {
                     int id = resultSet.getInt("id_sztuki");
                     String tytul = resultSet.getString("tytul_sztuki");
+                    String informator = resultSet.getString("informator");
                     String imieRezysera = resultSet.getString("imie_rezysera");
                     String nazwiskoRezysera = resultSet.getString("nazwisko_rezysera");
                     String d = resultSet.getString("data_realizacji");
                     String miejsce = resultSet.getString("miejsce_realizacji");
 
-                    SztukaTeatralna sztuka = new SztukaTeatralna(id, tytul, " ", new Rezyser(imieRezysera, nazwiskoRezysera, 0), d, miejsce);
+                    SztukaTeatralna sztuka = new SztukaTeatralna(id, tytul, informator, new Rezyser(imieRezysera, nazwiskoRezysera, 0), d, miejsce);
                     sztuki.add(sztuka);
 
                     model.addRow(new Object[]{tytul, imieRezysera + " " + nazwiskoRezysera, d, miejsce, "Informator"});
@@ -108,6 +109,7 @@ public class PreLogin extends JPanel {
             button = new JButton("Informator");
             button.addActionListener(e -> {
                 int selectedRow = sztukiTable.getSelectedRow();
+                System.out.println(selectedRow);
                 if (selectedRow != -1) {
                     showInformatorInfo(sztuki.get(selectedRow)); // Modify this line according to your requirements
                 }
@@ -131,22 +133,47 @@ public class PreLogin extends JPanel {
             try {
                 database.connect();
 
-                // Call the SztukaPoId function
+                int id_sztuki = sztuka.getId();
+                System.out.println("ID sztuki: " + sztuka.getId());
                 String query = "SELECT * FROM SztukaPoId(?)";
                 PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
-                preparedStatement.setInt(1, sztuka.getId());
+                preparedStatement.setInt(1, id_sztuki);
                 ResultSet resultSet = preparedStatement.executeQuery();
+                System.out.println(preparedStatement);
 
                 StringBuilder message = new StringBuilder();
                 message.append("Informacje o sztuce: \n")
                         .append("tytul: ").append(sztuka.getTytul()).append("\n")
-                        .append("informator: ").append(sztuka.getInformator()).append("\n")
+                        .append(sztuka.getInformator()).append("\n")
                         .append("rezyser: ").append(sztuka.getRezyser().toString()).append("\n")
                         .append("miejsce realizacji: ").append(sztuka.getMiejsce()).append("\n")
-                        .append("data: ").append(sztuka.getData()).append("\n");
+                        .append("data: ").append(sztuka.getData()).append("\n")
+                        .append("\nObsada\n");
+
+                database.disconnect();
+                database.connect();
+
+                System.out.println("ID sztuki: " + sztuka.getId());
+                query = "SELECT * FROM ObsadaPoId(?)";
+                preparedStatement = database.getConnection().prepareStatement(query);
+                preparedStatement.setInt(1, id_sztuki);
+                ResultSet resultSet2 = preparedStatement.executeQuery();
+                System.out.println(preparedStatement);
+                System.out.println(resultSet2);
+
+                while (resultSet2.next()) {
+                    System.out.println("Row in ObsadaPoId result set:");
+                    String postac = resultSet2.getString("postac");
+                    String imie_aktora = resultSet2.getString("imie_aktora");
+                    String nazwisko_aktora = resultSet2.getString("nazwisko_aktora");
+
+                    System.out.println("Postać: " + postac + ", Grana przez: " + imie_aktora + " " + nazwisko_aktora);
+
+
+                    message.append("Postać: ").append(postac).append(", Grana przez: ").append(imie_aktora).append(" ").append(nazwisko_aktora).append("\n");
+                }
 
                 JOptionPane.showMessageDialog(this, message.toString(), "Informator", JOptionPane.INFORMATION_MESSAGE);
-
             } finally {
                 database.disconnect();
             }

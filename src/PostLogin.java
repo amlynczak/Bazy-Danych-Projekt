@@ -79,18 +79,20 @@ public class PostLogin extends JPanel {
     private void pobierzHarmonogram() {
         try {
             DataBase database = new DataBase();
-
-            sztuki = new ArrayList<>();
-
+            sztuki = new ArrayList<>(); // Initialize the sztuki list
             try {
                 database.connect();
 
                 String query = "SELECT * FROM Harmonogram_app";
-
                 PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
                 ResultSet resultSet = preparedStatement.executeQuery();
 
-                DefaultTableModel model = new DefaultTableModel();
+                DefaultTableModel model = new DefaultTableModel() {
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        return column == 4; // Make only the "Informator" column editable
+                    }
+                };
                 model.addColumn("Tytuł");
                 model.addColumn("Reżyser");
                 model.addColumn("Data");
@@ -107,22 +109,77 @@ public class PostLogin extends JPanel {
 
                     SztukaTeatralna sztuka = new SztukaTeatralna(id, tytul, " ", new Rezyser(imieRezysera, nazwiskoRezysera, 0), d, miejsce);
                     sztuki.add(sztuka);
-                }
 
-                for(SztukaTeatralna data: sztuki){
-                    Object[] row = {data.getTytul(), data.getRezyser().toString(), data.getData(), data.getMiejsce(), "Informator"};
-                    model.addRow(row);
+                    model.addRow(new Object[]{tytul, imieRezysera + " " + nazwiskoRezysera, d, miejsce, "Informator"});
                 }
 
                 sztukiTable.setModel(model);
 
+                sztukiTable.getColumnModel().getColumn(4).setCellRenderer(new PostLogin.ButtonRenderer());
+                sztukiTable.getColumnModel().getColumn(4).setCellEditor(new PostLogin.ButtonEditorInformator(new JCheckBox()));
+
             } finally {
                 database.disconnect();
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Błąd podczas pobierania harmonogramu: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Error retrieving schedule information: " + e.getMessage());
+        }
+    }
+
+    private class ButtonEditorInformator extends DefaultCellEditor {
+        private JButton button;
+
+        public ButtonEditorInformator(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton("Informator");
+            button.addActionListener(e -> {
+                int selectedRow = sztukiTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    showInformatorInfo(sztuki.get(selectedRow)); // Modify this line according to your requirements
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return button;
+        }
+    }
+
+    private void showInformatorInfo(SztukaTeatralna sztuka) {
+        try {
+            DataBase database = new DataBase();
+            try {
+                database.connect();
+
+                // Call the SztukaPoId function
+                String query = "SELECT * FROM SztukaPoId(?)";
+                PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
+                preparedStatement.setInt(1, sztuka.getId());
+                ResultSet resultSet = preparedStatement.executeQuery();
+
+                StringBuilder message = new StringBuilder();
+                message.append("Informacje o sztuce: \n")
+                        .append("tytul: ").append(sztuka.getTytul()).append("\n")
+                        .append("informator: ").append(sztuka.getInformator()).append("\n")
+                        .append("rezyser: ").append(sztuka.getRezyser().toString()).append("\n")
+                        .append("miejsce realizacji: ").append(sztuka.getMiejsce()).append("\n")
+                        .append("data: ").append(sztuka.getData()).append("\n");
+
+                JOptionPane.showMessageDialog(this, message.toString(), "Informator", JOptionPane.INFORMATION_MESSAGE);
+
+            } finally {
+                database.disconnect();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Error retrieving informator information: " + e.getMessage());
         }
     }
 
@@ -252,20 +309,17 @@ public class PostLogin extends JPanel {
 
                 // Display the information using JOptionPane
                 StringBuilder message = new StringBuilder();
-                message.append("Additional information about actor:\n")
-                        .append("ID: ").append(aktor.getId()).append("\n")
+                message.append("Pełne informacje o aktorze:\n")
                         .append("Imię: ").append(aktor.getImie()).append("\n")
                         .append("Nazwisko: ").append(aktor.getNazwisko()).append("\n\n")
-                        .append("Plays:\n");
+                        .append("Występuje w:\n");
 
                 while (resultSet.next()) {
-                    int playId = resultSet.getInt("play_id");
                     String playTitle = resultSet.getString("play_title");
                     String characterPlayed = resultSet.getString("character_played");
 
-                    message.append("Play ID: ").append(playId).append("\n")
-                            .append("Play Title: ").append(playTitle).append("\n")
-                            .append("Character Played: ").append(characterPlayed).append("\n\n");
+                    message.append(playTitle).append(", ")
+                            .append("grana postać: ").append(characterPlayed).append("\n\n");
                 }
 
                 JOptionPane.showMessageDialog(this, message.toString(), "Actor Information", JOptionPane.INFORMATION_MESSAGE);
@@ -343,18 +397,15 @@ public class PostLogin extends JPanel {
 
                 // Display the information using JOptionPane
                 StringBuilder message = new StringBuilder();
-                message.append("Additional information about director:\n")
-                        .append("ID: ").append(rezyser.getId()).append("\n")
+                message.append("Informacje o reżyserze:\n")
                         .append("Imię: ").append(rezyser.getImie()).append("\n")
                         .append("Nazwisko: ").append(rezyser.getNazwisko()).append("\n\n")
-                        .append("Plays:\n");
+                        .append("Sztuki w jego reżyserii:\n");
 
                 while (resultSet.next()) {
-                    int playId = resultSet.getInt("id_sztuki");
                     String playTitle = resultSet.getString("tytul_sztuki");
 
-                    message.append("Play ID: ").append(playId).append("\n")
-                            .append("Play Title: ").append(playTitle).append("\n\n");
+                    message.append(playTitle).append("\n\n");
                 }
 
                 JOptionPane.showMessageDialog(this, message.toString(), "Director Information", JOptionPane.INFORMATION_MESSAGE);

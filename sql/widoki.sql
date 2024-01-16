@@ -1,5 +1,5 @@
 CREATE OR REPLACE VIEW Harmonogram_app AS
-SELECT st.id_sztuki, st.tytul_sztuki, r.imie_rezysera,
+SELECT st.id_sztuki, st.tytul_sztuki, st.informator, r.imie_rezysera,
 r.nazwisko_rezysera, tr.data_realizacji, tr.miejsce_realizacji
 FROM SztukiTeatralne st
 JOIN Rezyser r ON st.id_rezysera = r.id_rezysera
