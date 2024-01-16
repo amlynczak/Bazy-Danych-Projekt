@@ -1,9 +1,8 @@
--- Trigger dla automatycznego zmniejszania dostępnych biletów po zakupie
 CREATE OR REPLACE FUNCTION zmniejsz_dostepne_bilety() RETURNS TRIGGER AS $$
 BEGIN
     UPDATE Bilety
-    SET dostepne_bilety = dostepne_bilety - NEW.ilosc_biletow
-    WHERE bilet_id = NEW.bilet_id;
+    SET dostepne_bilety = GREATEST(dostepne_bilety - NEW.ilosc_biletow, 0)
+    WHERE bilety_id = NEW.id_biletow;
 
     RETURN NEW;
 END;

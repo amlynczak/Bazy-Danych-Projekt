@@ -5,15 +5,20 @@ public class SztukaTeatralna {
     private String informator;
     private String data_realizacji;
     private String miejsce_realizacji;
-    private Obsada obsada;
+    public int ilosc_biletow;
+    public int ulgowy_cena;
+    public int normalny_cena;
 
-    public SztukaTeatralna(int id, String t, String info, Rezyser rez, String d, String miejsce){
+    public SztukaTeatralna(int id, String t, String info, Rezyser rez, String d, String miejsce, int ilosc, int ulgowy, int normalny){
         this.id = id;
         tytul = t;
         rezyser = rez;
         informator = info;
         data_realizacji = d;
         miejsce_realizacji = miejsce;
+        ilosc_biletow = ilosc;
+        ulgowy_cena = ulgowy;
+        normalny_cena = normalny;
     };
 
     public String getData(){
@@ -39,4 +44,15 @@ public class SztukaTeatralna {
         return miejsce_realizacji;
     }
 
+    public int getIlosc_biletow() {
+        return ilosc_biletow;
+    }
+
+    public int getNormalny_cena() {
+        return normalny_cena;
+    }
+
+    public int getUlgowy_cena() {
+        return ulgowy_cena;
+    }
 }

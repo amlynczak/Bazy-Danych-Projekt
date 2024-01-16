@@ -8,7 +8,6 @@ import java.sql.Statement;
 
 public class DataBase {
     private Connection c = null;
-
     public DataBase() {
         String url = "jdbc:postgresql://balarama.db.elephantsql.com:5432/rfbrrvpp";
         String user = "rfbrrvpp";
@@ -22,7 +21,6 @@ public class DataBase {
             System.exit(1);
         }
     }
-
     public Connection getConnection() {
         return c;
     }

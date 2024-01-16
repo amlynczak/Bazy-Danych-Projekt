@@ -32,7 +32,7 @@ INSERT INTO Bilety (dostepne_bilety, cena_ulgowy, cena_normalny) VALUES
     (120, 18, 36);
 
 -- Dodawanie przykładowych terminów realizacji sztuk z przypisanymi biletami
-INSERT INTO TerminyRealizacji (id_sztuki, data_realizacji, miejsce_realizacji, bilet_id) VALUES 
+INSERT INTO TerminyRealizacji (id_sztuki, data_realizacji, miejsce_realizacji, bilety_id) VALUES
     (1, '2022-01-15', 'Teatr Ludowy - Scena Główna', 1),
     (1, '2022-01-20', 'Teatr Ludowy - Scena Pod Ratuszem', 2),
     (2, '2022-02-01', 'Teatr Ludowy - Scena Pod Ratuszem', 2),

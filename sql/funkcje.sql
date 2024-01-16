@@ -29,7 +29,7 @@ BEGIN
     JOIN
         TerminyRealizacji TR ON ST.id_sztuki = TR.id_sztuki
     JOIN
-        Bilety B ON TR.bilet_id = B.bilet_id
+        Bilety B ON TR.bilety_id = B.bilety_id
     WHERE
         ST.id_sztuki = SztukaPoId.id_sztuki;
 END;
