@@ -19,10 +19,8 @@ public class PreLogin extends JPanel {
 
     public PreLogin(TeatrDatabaseApp app) {
         mainApp = app;
-
         setLayout(new BorderLayout());
 
-        // Przyciski w pionie
         JPanel buttonPanel = new JPanel(new GridLayout(4, 1));
         pobierzHarmonogramButton = new JButton("Pobierz Harmonogram");
         zobaczAktoraButton = new JButton("Zobacz Aktorów");
@@ -39,11 +37,9 @@ public class PreLogin extends JPanel {
         buttonPanel.add(zobaczRezyseraButton);
         buttonPanel.add(zalogujButton);
 
-        // Tabela pod przyciskami
         sztukiTable = new JTable();
         JScrollPane tableScrollPane = new JScrollPane(sztukiTable);
 
-        // Dodanie przycisków i tabeli do panelu
         add(buttonPanel, BorderLayout.WEST);
         add(tableScrollPane, BorderLayout.CENTER);
 
@@ -164,20 +160,16 @@ public class PreLogin extends JPanel {
                     message.append("Postać: ").append(postac).append(", Grana przez: ").append(imie_aktora).append(" ").append(nazwisko_aktora).append("\n");
                 }
 
-                // Create a panel to hold the message and the purchase button
                 JPanel panel = new JPanel(new BorderLayout());
                 JTextArea textArea = new JTextArea(message.toString());
                 textArea.setEditable(false);
                 panel.add(new JScrollPane(textArea), BorderLayout.CENTER);
 
-                // Add the ticket purchase button to the panel
                 JButton purchaseButton = new JButton("Zakup Biletów");
                 panel.add(purchaseButton, BorderLayout.SOUTH);
 
-                // Set an action listener for the purchase button
                 purchaseButton.addActionListener(e -> purchaseTickets(id_sztuki));
 
-                // Display the message panel including the ticket purchase button
                 JOptionPane.showMessageDialog(this, panel, "Informator", JOptionPane.INFORMATION_MESSAGE);
 
             } finally {
@@ -189,7 +181,6 @@ public class PreLogin extends JPanel {
         }
     }
 
-
     private void purchaseTickets(int id_sztuki) {
         String input = JOptionPane.showInputDialog(this, "Ile biletów chcesz kupić?");
         try {
@@ -200,7 +191,6 @@ public class PreLogin extends JPanel {
             JOptionPane.showMessageDialog(this, "Wprowadź poprawną liczbę biletów.");
         }
     }
-
 
     private void zobaczAktora() {
         try {
@@ -320,13 +310,11 @@ public class PreLogin extends JPanel {
             try {
                 database.connect();
 
-                // Call the GetPlaysForActor function
                 String query = "SELECT * FROM GetPlaysForActor(?)";
                 PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
                 preparedStatement.setInt(1, aktor.getId());
                 ResultSet resultSet = preparedStatement.executeQuery();
 
-                // Display the information using JOptionPane
                 StringBuilder message = new StringBuilder();
                 message.append("Pełne informacje o aktorze:\n")
                         .append("Imię: ").append(aktor.getImie()).append("\n")
@@ -368,7 +356,7 @@ public class PreLogin extends JPanel {
                 DefaultTableModel model = new DefaultTableModel() {
                     @Override
                     public boolean isCellEditable(int row, int column) {
-                        return column == 2; // Make only the button column editable
+                        return column == 2;
                     }
                 };
                 model.addColumn("Imię");
@@ -408,13 +396,11 @@ public class PreLogin extends JPanel {
             try {
                 database.connect();
 
-                // Call the SztukiDanegoRezysera function
                 String query = "SELECT * FROM SztukiDanegoRezysera(?)";
                 PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
                 preparedStatement.setInt(1, rezyser.getId());
                 ResultSet resultSet = preparedStatement.executeQuery();
 
-                // Display the information using JOptionPane
                 StringBuilder message = new StringBuilder();
                 message.append("Informacje o reżyserze:\n")
                         .append("Imię: ").append(rezyser.getImie()).append("\n")
@@ -437,5 +423,4 @@ public class PreLogin extends JPanel {
             JOptionPane.showMessageDialog(this, "Error retrieving director information: " + e.getMessage());
         }
     }
-
 }
