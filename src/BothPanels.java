@@ -14,7 +14,7 @@ public class BothPanels extends JPanel {
     private JButton pobierzHarmonogramButton;
     private JButton nasiRezyserowieButton;
     private JButton nasiAktorzyButton;
-    private JTable sztukiTable;
+    public JTable sztukiTable;
     private ArrayList<Aktor> aktorzy;
     private ArrayList<Rezyser> rezyserzy;
     private ArrayList<SztukaTeatralna> sztuki;
@@ -26,6 +26,7 @@ public class BothPanels extends JPanel {
         setLayout(new BorderLayout());
 
         buttonPanelLeft = new JPanel(new GridLayout(4, 1));
+        buttonPanelRight = new JPanel(new GridLayout(7, 1));
         pobierzHarmonogramButton = new JButton("Pobierz Harmonogram");
         nasiAktorzyButton = new JButton("Nasi Aktorzy");
         nasiRezyserowieButton = new JButton("Nasi Reżyserzy");
@@ -43,6 +44,7 @@ public class BothPanels extends JPanel {
 
         add(buttonPanelLeft, BorderLayout.WEST);
         add(tableScrollPane, BorderLayout.CENTER);
+        add(buttonPanelRight, BorderLayout.EAST);
     }
 
     private void pobierzHarmonogram() {

@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -21,7 +22,6 @@ public class PostLogin extends BothPanels {
 
     public PostLogin(TeatrDatabaseApp app) {
         super(app);
-        buttonPanelRight = new JPanel(new GridLayout(7, 1));
         
         wylogujButton = new JButton("Wyloguj");
         wylogujButton.addActionListener(e -> mainApp.showPreLoginPanel());
@@ -50,8 +50,6 @@ public class PostLogin extends BothPanels {
         buttonPanelRight.add(nowyRezyserButton);
         buttonPanelRight.add(zamowieniaButton);
         buttonPanelRight.add(restartButton);
-
-        add(buttonPanelRight, BorderLayout.EAST);
     }
 
     private void dodajSztuke() {
@@ -445,7 +443,13 @@ public class PostLogin extends BothPanels {
                 PreparedStatement statement = database.getConnection().prepareStatement(query);
                 ResultSet resultSet = statement.executeQuery();
 
-                StringBuilder message = new StringBuilder();
+                DefaultTableModel model = new DefaultTableModel();
+                model.addColumn("id");
+                model.addColumn("Termin spektaklu");
+                model.addColumn("Tytuł przedstawienia");
+                model.addColumn("Liczba biletów ulgowych");
+                model.addColumn("Liczba biletów normalnych");
+                model.addColumn("Data zamównienia");
 
                 while (resultSet.next()) {
                     int idZamowienia = resultSet.getInt("id_zamowienia");
@@ -455,15 +459,10 @@ public class PostLogin extends BothPanels {
                     int iloscBiletow_n = resultSet.getInt("ilosc_biletow_normalne");
                     Date dataZamowienia = resultSet.getDate("data_zamowienia");
 
-                    message.append("id: ").append(idZamowienia).append("\n")
-                            .append("tytuł spektaklu: ").append(tytul).append("\n")
-                            .append("termin przedstawienia: ").append(termin).append("\n")
-                            .append("ilość biletów zamówionych: ").append(iloscBiletow_u).append(" ulgowych, ")
-                            .append(iloscBiletow_n).append(" normalnych").append("\n")
-                            .append("Data Zamównenia: ").append(dataZamowienia).append("\n\n\n");
+                    model.addRow(new Object[]{idZamowienia, termin, tytul, iloscBiletow_u, iloscBiletow_n, dataZamowienia});
                 }
 
-                JOptionPane.showMessageDialog(this, message.toString(), "Zamównenia", JOptionPane.INFORMATION_MESSAGE);
+                sztukiTable.setModel(model);
 
             } finally {
                 database.disconnect();
