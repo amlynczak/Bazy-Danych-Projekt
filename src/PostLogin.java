@@ -1,6 +1,4 @@
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -8,6 +6,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
 import java.sql.Statement;
+import java.util.Date;
 
 public class PostLogin extends BothPanels {
 
@@ -17,28 +16,31 @@ public class PostLogin extends BothPanels {
     private JButton dodajTerminyButton;
     private JButton nowyAktorButton;
     private JButton nowyRezyserButton;
+    private JButton zamowieniaButton;
     private JButton restartButton;
 
     public PostLogin(TeatrDatabaseApp app) {
         super(app);
-        buttonPanelRight = new JPanel(new GridLayout(6, 1));
+        buttonPanelRight = new JPanel(new GridLayout(7, 1));
         
         wylogujButton = new JButton("Wyloguj");
         wylogujButton.addActionListener(e -> mainApp.showPreLoginPanel());
         buttonPanelLeft.add(wylogujButton);
 
         dodajSztukeButton = new JButton("Dodaj Sztukę");
-        dodajObsadeButton = new JButton("Dodaj obsadę do sztuki");
-        dodajTerminyButton = new JButton("Ustal terminy dla sztuki");
-        nowyAktorButton = new JButton("nowy Aktor");
-        nowyRezyserButton = new JButton("nowy reżyser");
-        restartButton = new JButton("Restart bazy");
+        dodajObsadeButton = new JButton("Dodaj Obsadę do Sztuki");
+        dodajTerminyButton = new JButton("Ustal Terminy dla Sztuki");
+        nowyAktorButton = new JButton("Nowy Aktor");
+        nowyRezyserButton = new JButton("Nowy Reżyser");
+        zamowieniaButton = new JButton("Zobacz zamównienia Biletów");
+        restartButton = new JButton("Restart Bazy");
 
         dodajSztukeButton.addActionListener(e -> dodajSztuke());
         dodajObsadeButton.addActionListener(e -> dodajObsade());
         dodajTerminyButton.addActionListener(e -> noweTerminy());
         nowyAktorButton.addActionListener(e -> nowyAktor());
         nowyRezyserButton.addActionListener(e -> nowyRezyser());
+        zamowieniaButton.addActionListener(e -> zamowienia());
         restartButton.addActionListener(e -> restart());
 
         buttonPanelRight.add(dodajSztukeButton);
@@ -46,6 +48,7 @@ public class PostLogin extends BothPanels {
         buttonPanelRight.add(dodajTerminyButton);
         buttonPanelRight.add(nowyAktorButton);
         buttonPanelRight.add(nowyRezyserButton);
+        buttonPanelRight.add(zamowieniaButton);
         buttonPanelRight.add(restartButton);
 
         add(buttonPanelRight, BorderLayout.EAST);
@@ -77,7 +80,7 @@ public class PostLogin extends BothPanels {
                 String rezyserNazwisko = tmp[1];
 
                 if (!tytul.isEmpty() && !informator.isEmpty() && !rezyserImie.isEmpty() && !rezyserNazwisko.isEmpty()) {
-                    addNewSztuka(tytul, informator, rezyserImie, rezyserNazwisko);
+                    dodawanieSztukiDB(tytul, informator, rezyserImie, rezyserNazwisko);
                 } else {
                     JOptionPane.showMessageDialog(this, "Wszystkie pola są wymagane.");
                 }
@@ -88,7 +91,7 @@ public class PostLogin extends BothPanels {
         }
     }
 
-    private void addNewSztuka(String tytul, String informator, String imieRezysera, String nazwiskoRezysera) {
+    private void dodawanieSztukiDB(String tytul, String informator, String imieRezysera, String nazwiskoRezysera) {
         try {
             DataBase database = new DataBase();
             try {
@@ -135,7 +138,6 @@ public class PostLogin extends BothPanels {
             String[] dostepneTytulySztuk = getAvailableTytulySztuk();
             JComboBox<String> tytulSztukiComboBox = new JComboBox<>(dostepneTytulySztuk);
 
-            // Pobierz listę aktorów z bazy danych
             String[] dostepniAktorzy = getAvailableAktorzy();
             JComboBox<String> aktorzyComboBox = new JComboBox<>(dostepniAktorzy);
 
@@ -143,11 +145,8 @@ public class PostLogin extends BothPanels {
 
             panel.add(new JLabel("Tytuł sztuki:"));
             panel.add(tytulSztukiComboBox);
-
-            // Dodaj nowy komponent JComboBox dla wyboru aktora z listy
             panel.add(new JLabel("Wybierz aktora:"));
             panel.add(aktorzyComboBox);
-
             panel.add(new JLabel("Postać:"));
             panel.add(postacField);
 
@@ -162,7 +161,7 @@ public class PostLogin extends BothPanels {
                 String postac = postacField.getText().trim();
 
                 if (!tytulSztuki.isEmpty() && !aktor.isEmpty() && !postac.isEmpty()) {
-                    addNewObsada(tytulSztuki, postac, imie, nazwisko);
+                    dodawanieObsadyDB(tytulSztuki, postac, imie, nazwisko);
                 } else {
                     JOptionPane.showMessageDialog(this, "Wszystkie pola muszą być wypełnione.");
                 }
@@ -176,8 +175,7 @@ public class PostLogin extends BothPanels {
         }
     }
 
-
-    private void addNewObsada(String tytulSztuki, String postac, String imieAktora, String nazwiskoAktora) {
+    private void dodawanieObsadyDB(String tytulSztuki, String postac, String imieAktora, String nazwiskoAktora) {
         try {
             DataBase database = new DataBase();
             try {
@@ -227,6 +225,255 @@ public class PostLogin extends BothPanels {
             JOptionPane.showMessageDialog(this, "Błąd podczas łączenia z bazą danych: " + e.getMessage());
         }
     }
+
+    private void noweTerminy() {
+        try {
+            JPanel panel = new JPanel(new GridLayout(6, 2));
+
+            String[] dostepneTytulySztuk = getAvailableTytulySztuk();
+            JComboBox<String> tytulSztukiComboBox = new JComboBox<>(dostepneTytulySztuk);
+
+            JTextField dataRealizacjiField = new JTextField();
+            JComboBox<String> miejsceComboBox = new JComboBox<>(new String[]{"Teatr Ludowy - Scena Główna", "Teatr Ludowy - Scena Pod Ratuszem", "Teatr Ludowy - Scena Stolarnia"});
+            JTextField dostepneBiletyField = new JTextField();
+            JTextField cenaUlgowyField = new JTextField();
+            JTextField cenaNormalnyField = new JTextField();
+
+            panel.add(new JLabel("Tytuł sztuki:"));
+            panel.add(tytulSztukiComboBox);
+            panel.add(new JLabel("Data realizacji (RRRR-MM-DD):"));
+            panel.add(dataRealizacjiField);
+            panel.add(new JLabel("Miejsce realizacji:"));
+            panel.add(miejsceComboBox);
+            panel.add(new JLabel("Ilość dostępnych biletów:"));
+            panel.add(dostepneBiletyField);
+            panel.add(new JLabel("Cena biletu ulgowego:"));
+            panel.add(cenaUlgowyField);
+            panel.add(new JLabel("Cena biletu normalnego:"));
+            panel.add(cenaNormalnyField);
+
+            int result = JOptionPane.showConfirmDialog(this, panel, "Ustal terminy dla sztuki", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION) {
+                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                java.util.Date parsedDate = dateFormat.parse(dataRealizacjiField.getText());
+
+                String tytulSztuki = (String)tytulSztukiComboBox.getSelectedItem();
+                java.sql.Date dataRealizacji = new java.sql.Date(parsedDate.getTime());
+                String miejsceRealizacji = (String) miejsceComboBox.getSelectedItem();
+                int dostepneBilety = Integer.parseInt(dostepneBiletyField.getText());
+                int cenaUlgowy = Integer.parseInt(cenaUlgowyField.getText());
+                int cenaNormalny = Integer.parseInt(cenaNormalnyField.getText());
+
+                if (!tytulSztuki.isEmpty() && !miejsceRealizacji.isEmpty()) {
+                    dodawanieTerminuDB(tytulSztuki, dataRealizacji, miejsceRealizacji, dostepneBilety, cenaUlgowy, cenaNormalny);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Wszystkie pola muszą być wypełnione.");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Błąd podczas ustalania terminów realizacji: " + e.getMessage());
+        }
+    }
+
+    private void dodawanieTerminuDB(String tytulSztuki, java.sql.Date dataRealizacji, String miejsceRealizacji,
+                                    int dostepneBilety, int cenaUlgowy, int cenaNormalny) {
+        try {
+            DataBase database = new DataBase();
+            try {
+                database.connect();
+
+                // Get the play ID based on the given title
+                String findSztukaIdQuery = "SELECT id_sztuki FROM SztukiTeatralne WHERE tytul_sztuki = ?";
+                PreparedStatement findSztukaIdStatement = database.getConnection().prepareStatement(findSztukaIdQuery);
+                findSztukaIdStatement.setString(1, tytulSztuki);
+                ResultSet sztukaIdResultSet = findSztukaIdStatement.executeQuery();
+
+                if (sztukaIdResultSet.next()) {
+                    int idSztuki = sztukaIdResultSet.getInt("id_sztuki");
+
+                    // Insert a new record into the TerminyRealizacji table
+                    String addTerminyQuery = "INSERT INTO TerminyRealizacji (id_sztuki, data_realizacji, miejsce_realizacji, dostepne_bilety, cena_ulgowy, cena_normalny) VALUES (?, ?, ?, ?, ?, ?)";
+                    PreparedStatement addTerminyStatement = database.getConnection().prepareStatement(addTerminyQuery);
+                    addTerminyStatement.setInt(1, idSztuki);
+                    addTerminyStatement.setDate(2, dataRealizacji);
+                    addTerminyStatement.setString(3, miejsceRealizacji);
+                    addTerminyStatement.setInt(4, dostepneBilety);
+                    addTerminyStatement.setInt(5, cenaUlgowy);
+                    addTerminyStatement.setInt(6, cenaNormalny);
+
+                    int rowsAffectedTerminy = addTerminyStatement.executeUpdate();
+
+                    if (rowsAffectedTerminy > 0) {
+                        JOptionPane.showMessageDialog(this, "Dodano nowe terminy realizacji do bazy danych.");
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Nie udało się dodać terminów realizacji do bazy danych.");
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this, "Nie znaleziono sztuki o podanym tytule.");
+                }
+            } finally {
+                database.disconnect();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Błąd podczas łączenia z bazą danych: " + e.getMessage());
+        }
+    }
+
+
+    private void nowyAktor() {
+        try {
+            JPanel panel = new JPanel(new GridLayout(2, 2));
+            JTextField imieField = new JTextField();
+            JTextField nazwiskoField = new JTextField();
+
+            panel.add(new JLabel("Imię:"));
+            panel.add(imieField);
+            panel.add(new JLabel("Nazwisko:"));
+            panel.add(nazwiskoField);
+
+            int result = JOptionPane.showConfirmDialog(this, panel, "Dodaj nowego aktora", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION) {
+                String imie = imieField.getText();
+                String nazwisko = nazwiskoField.getText();
+
+                if (!imie.isEmpty() && !nazwisko.isEmpty()) {
+                    dodawanieAktoraDB(imie, nazwisko);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Imię i nazwisko nie mogą być puste.");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Błąd podczas dodawania aktora: " + e.getMessage());
+        }
+    }
+
+    private void dodawanieAktoraDB(String imie, String nazwisko) {
+        try {
+            DataBase database = new DataBase();
+            try {
+                database.connect();
+
+                String query = "INSERT INTO Aktorzy (imie, nazwisko) VALUES (?, ?)";
+                PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
+                preparedStatement.setString(1, imie);
+                preparedStatement.setString(2, nazwisko);
+
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(this, "Dodano nowego aktora do bazy danych.");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Nie udało się dodać aktora do bazy danych.");
+                }
+            } finally {
+                database.disconnect();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Błąd podczas łączenia z bazą danych: " + e.getMessage());
+        }
+    }
+
+    private void nowyRezyser(){
+        try {
+            JPanel panel = new JPanel(new GridLayout(2, 2));
+            JTextField imieField = new JTextField();
+            JTextField nazwiskoField = new JTextField();
+
+            panel.add(new JLabel("Imię:"));
+            panel.add(imieField);
+            panel.add(new JLabel("Nazwisko:"));
+            panel.add(nazwiskoField);
+
+            int result = JOptionPane.showConfirmDialog(this, panel, "Dodaj nowego reżysera", JOptionPane.OK_CANCEL_OPTION);
+
+            if (result == JOptionPane.OK_OPTION) {
+                String imie = imieField.getText();
+                String nazwisko = nazwiskoField.getText();
+
+                if (!imie.isEmpty() && !nazwisko.isEmpty()) {
+                    dodawanieRezyseraDB(imie, nazwisko);
+                } else {
+                    JOptionPane.showMessageDialog(this, "Imię i nazwisko nie mogą być puste.");
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Błąd podczas dodawania rezysera: " + e.getMessage());
+        }
+    }
+
+    private void dodawanieRezyseraDB(String imie, String nazwisko) {
+        try {
+            DataBase database = new DataBase();
+            try {
+                database.connect();
+
+                String query = "INSERT INTO Rezyser (imie_rezysera, nazwisko_rezysera) VALUES (?, ?)";
+                PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
+                preparedStatement.setString(1, imie);
+                preparedStatement.setString(2, nazwisko);
+
+                int rowsAffected = preparedStatement.executeUpdate();
+
+                if (rowsAffected > 0) {
+                    JOptionPane.showMessageDialog(this, "Dodano nowego rezysera do bazy danych.");
+                } else {
+                    JOptionPane.showMessageDialog(this, "Nie udało się dodać rezysera do bazy danych.");
+                }
+            } finally {
+                database.disconnect();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Błąd podczas łączenia z bazą danych: " + e.getMessage());
+        }
+    }
+
+    private void zamowienia() {
+        try {
+            DataBase database = new DataBase();
+            try {
+                database.connect();
+
+                String query = "SELECT * FROM Zamowienia_app";
+                PreparedStatement statement = database.getConnection().prepareStatement(query);
+                ResultSet resultSet = statement.executeQuery();
+
+                StringBuilder message = new StringBuilder();
+
+                while (resultSet.next()) {
+                    int idZamowienia = resultSet.getInt("id_zamowienia");
+                    Date termin = resultSet.getDate("data_realizacji");
+                    String tytul = resultSet.getString("tytul_sztuki");
+                    int iloscBiletow_u = resultSet.getInt("ilosc_biletow_ulgowe");
+                    int iloscBiletow_n = resultSet.getInt("ilosc_biletow_normalne");
+                    Date dataZamowienia = resultSet.getDate("data_zamowienia");
+
+                    message.append("id: ").append(idZamowienia).append("\n")
+                            .append("tytuł spektaklu: ").append(tytul).append("\n")
+                            .append("termin przedstawienia: ").append(termin).append("\n")
+                            .append("ilość biletów zamówionych: ").append(iloscBiletow_u).append(" ulgowych, ")
+                            .append(iloscBiletow_n).append(" normalnych").append("\n")
+                            .append("Data Zamównenia: ").append(dataZamowienia).append("\n\n\n");
+                }
+
+                JOptionPane.showMessageDialog(this, message.toString(), "Zamównenia", JOptionPane.INFORMATION_MESSAGE);
+
+            } finally {
+                database.disconnect();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Błąd SQL podczas pobierania zamówień: " + e.getMessage());
+        }
+    }
+
 
     private String[] getAvailableTytulySztuk() {
         ArrayList<String> tytulySztuk = new ArrayList<>();
@@ -307,226 +554,6 @@ public class PostLogin extends BothPanels {
         }
 
         return rezyserzyList.toArray(new String[0]);
-    }
-
-
-
-    private void noweTerminy() {
-        try {
-            JPanel panel = new JPanel(new GridLayout(6, 2));
-
-            String[] dostepneTytulySztuk = getAvailableTytulySztuk();
-            JComboBox<String> tytulSztukiComboBox = new JComboBox<>(dostepneTytulySztuk);
-
-            JTextField dataRealizacjiField = new JTextField();
-            JComboBox<String> miejsceComboBox = new JComboBox<>(new String[]{"Teatr Ludowy - Scena Główna", "Teatr Ludowy - Scena Pod Ratuszem", "Teatr Ludowy - Scena Stolarnia"});
-            JTextField dostepneBiletyField = new JTextField();
-            JTextField cenaUlgowyField = new JTextField();
-            JTextField cenaNormalnyField = new JTextField();
-
-            panel.add(new JLabel("Tytuł sztuki:"));
-            panel.add(tytulSztukiComboBox);
-            panel.add(new JLabel("Data realizacji (RRRR-MM-DD):"));
-            panel.add(dataRealizacjiField);
-            panel.add(new JLabel("Miejsce realizacji:"));
-            panel.add(miejsceComboBox);
-            panel.add(new JLabel("Dostępne bilety:"));
-            panel.add(dostepneBiletyField);
-            panel.add(new JLabel("Cena biletu ulgowego:"));
-            panel.add(cenaUlgowyField);
-            panel.add(new JLabel("Cena biletu normalnego:"));
-            panel.add(cenaNormalnyField);
-
-            int result = JOptionPane.showConfirmDialog(this, panel, "Ustal terminy dla sztuki", JOptionPane.OK_CANCEL_OPTION);
-
-            if (result == JOptionPane.OK_OPTION) {
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                java.util.Date parsedDate = dateFormat.parse(dataRealizacjiField.getText());
-
-                String tytulSztuki = (String)tytulSztukiComboBox.getSelectedItem();
-                java.sql.Date dataRealizacji = new java.sql.Date(parsedDate.getTime());
-                String miejsceRealizacji = (String) miejsceComboBox.getSelectedItem();
-                int dostepneBilety = Integer.parseInt(dostepneBiletyField.getText());
-                int cenaUlgowy = Integer.parseInt(cenaUlgowyField.getText());
-                int cenaNormalny = Integer.parseInt(cenaNormalnyField.getText());
-
-                if (!tytulSztuki.isEmpty() && !miejsceRealizacji.isEmpty()) {
-                    addNewTerminy(tytulSztuki, dataRealizacji, miejsceRealizacji, dostepneBilety, cenaUlgowy, cenaNormalny);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Wszystkie pola muszą być wypełnione.");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Błąd podczas ustalania terminów realizacji: " + e.getMessage());
-        }
-    }
-
-    private void addNewTerminy(String tytulSztuki, java.sql.Date dataRealizacji, String miejsceRealizacji,
-                               int dostepneBilety, int cenaUlgowy, int cenaNormalny) {
-        try {
-            DataBase database = new DataBase();
-            try {
-                database.connect();
-
-                // Wstawianie danych do tabeli Bilety
-                String addBiletyQuery = "INSERT INTO Bilety (dostepne_bilety, cena_ulgowy, cena_normalny) " +
-                        "VALUES (?, ?, ?)";
-                PreparedStatement addBiletyStatement = database.getConnection().prepareStatement(addBiletyQuery, Statement.RETURN_GENERATED_KEYS);
-                addBiletyStatement.setInt(1, dostepneBilety);
-                addBiletyStatement.setInt(2, cenaUlgowy);
-                addBiletyStatement.setInt(3, cenaNormalny);
-
-                int rowsAffectedBilety = addBiletyStatement.executeUpdate();
-
-                if (rowsAffectedBilety > 0) {
-                    // Pobierz wygenerowane klucze główne dla nowo wstawionych rekordów
-                    ResultSet generatedKeys = addBiletyStatement.getGeneratedKeys();
-
-                    if (generatedKeys.next()) {
-                        int idBiletu = generatedKeys.getInt(1);
-
-                        String addTerminyQuery = "INSERT INTO TerminyRealizacji (id_sztuki, data_realizacji, miejsce_realizacji, bilet_id) " +
-                                "VALUES ((SELECT id_sztuki FROM SztukiTeatralne WHERE tytul_sztuki = ?), ?, ?, ?)";
-                        PreparedStatement addTerminyStatement = database.getConnection().prepareStatement(addTerminyQuery);
-                        addTerminyStatement.setString(1, tytulSztuki);
-                        addTerminyStatement.setDate(2, dataRealizacji);
-                        addTerminyStatement.setString(3, miejsceRealizacji);
-                        addTerminyStatement.setInt(4, idBiletu);
-
-                        int rowsAffectedTerminy = addTerminyStatement.executeUpdate();
-
-                        if (rowsAffectedTerminy > 0) {
-                            JOptionPane.showMessageDialog(this, "Dodano nowe terminy realizacji do bazy danych.");
-                        } else {
-                            JOptionPane.showMessageDialog(this, "Nie udało się dodać terminów realizacji do bazy danych.");
-                        }
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Błąd podczas uzyskiwania klucza głównego dla Bilety.");
-                    }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Nie udało się dodać danych do tabeli Bilety.");
-                }
-            } finally {
-                database.disconnect();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Błąd podczas łączenia z bazą danych: " + e.getMessage());
-        }
-    }
-
-
-    private void nowyAktor() {
-        try {
-            JPanel panel = new JPanel(new GridLayout(2, 2));
-            JTextField imieField = new JTextField();
-            JTextField nazwiskoField = new JTextField();
-
-            panel.add(new JLabel("Imię:"));
-            panel.add(imieField);
-            panel.add(new JLabel("Nazwisko:"));
-            panel.add(nazwiskoField);
-
-            int result = JOptionPane.showConfirmDialog(this, panel, "Dodaj nowego aktora", JOptionPane.OK_CANCEL_OPTION);
-
-            if (result == JOptionPane.OK_OPTION) {
-                String imie = imieField.getText();
-                String nazwisko = nazwiskoField.getText();
-
-                if (!imie.isEmpty() && !nazwisko.isEmpty()) {
-                    addNewActor(imie, nazwisko);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Imię i nazwisko nie mogą być puste.");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Błąd podczas dodawania aktora: " + e.getMessage());
-        }
-    }
-
-    private void addNewActor(String imie, String nazwisko) {
-        try {
-            DataBase database = new DataBase();
-            try {
-                database.connect();
-
-                String query = "INSERT INTO Aktorzy (imie, nazwisko) VALUES (?, ?)";
-                PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
-                preparedStatement.setString(1, imie);
-                preparedStatement.setString(2, nazwisko);
-
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                if (rowsAffected > 0) {
-                    JOptionPane.showMessageDialog(this, "Dodano nowego aktora do bazy danych.");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Nie udało się dodać aktora do bazy danych.");
-                }
-            } finally {
-                database.disconnect();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Błąd podczas łączenia z bazą danych: " + e.getMessage());
-        }
-    }
-
-    private void nowyRezyser(){
-        try {
-            JPanel panel = new JPanel(new GridLayout(2, 2));
-            JTextField imieField = new JTextField();
-            JTextField nazwiskoField = new JTextField();
-
-            panel.add(new JLabel("Imię:"));
-            panel.add(imieField);
-            panel.add(new JLabel("Nazwisko:"));
-            panel.add(nazwiskoField);
-
-            int result = JOptionPane.showConfirmDialog(this, panel, "Dodaj nowego reżysera", JOptionPane.OK_CANCEL_OPTION);
-
-            if (result == JOptionPane.OK_OPTION) {
-                String imie = imieField.getText();
-                String nazwisko = nazwiskoField.getText();
-
-                if (!imie.isEmpty() && !nazwisko.isEmpty()) {
-                    addNewRezyser(imie, nazwisko);
-                } else {
-                    JOptionPane.showMessageDialog(this, "Imię i nazwisko nie mogą być puste.");
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Błąd podczas dodawania rezysera: " + e.getMessage());
-        }
-    }
-
-    private void addNewRezyser(String imie, String nazwisko) {
-        try {
-            DataBase database = new DataBase();
-            try {
-                database.connect();
-
-                String query = "INSERT INTO Rezyser (imie_rezysera, nazwisko_rezysera) VALUES (?, ?)";
-                PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
-                preparedStatement.setString(1, imie);
-                preparedStatement.setString(2, nazwisko);
-
-                int rowsAffected = preparedStatement.executeUpdate();
-
-                if (rowsAffected > 0) {
-                    JOptionPane.showMessageDialog(this, "Dodano nowego rezysera do bazy danych.");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Nie udało się dodać rezysera do bazy danych.");
-                }
-            } finally {
-                database.disconnect();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Błąd podczas łączenia z bazą danych: " + e.getMessage());
-        }
     }
 
     private void restart(){

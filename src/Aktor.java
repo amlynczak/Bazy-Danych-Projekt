@@ -3,10 +3,10 @@ public class Aktor {
     private String imie;
     private String nazwisko;
 
-    public Aktor(String name, String lname, int ID){
-        imie = name;
-        nazwisko = lname;
-        id = ID;
+    public Aktor(String imie, String nazwisko, int ID){
+        this.imie = imie;
+        this.nazwisko = nazwisko;
+        this.id = ID;
     }
 
     public String getImie(){

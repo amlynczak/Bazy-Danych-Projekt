@@ -31,30 +31,24 @@ CREATE TABLE ObsadaSztuki (
     FOREIGN KEY (id_aktora) REFERENCES Aktorzy(id_aktora)
 );
 
--- Tworzenie tabeli Bilety
-CREATE TABLE Bilety (
-    bilety_id SERIAL PRIMARY KEY,
-    dostepne_bilety INT,
-    cena_ulgowy INT,
-    cena_normalny INT
-);
-
 -- Tworzenie tabeli TerminyRealizacji
 CREATE TABLE TerminyRealizacji (
     id_terminu SERIAL PRIMARY KEY,
     id_sztuki INT,
     data_realizacji DATE,
     miejsce_realizacji VARCHAR(100),
-    bilety_id INT,
-    FOREIGN KEY (id_sztuki) REFERENCES SztukiTeatralne(id_sztuki),
-    FOREIGN KEY (bilety_id) REFERENCES Bilety(bilety_id)
+    dostepne_bilety INT,
+    cena_ulgowy INT,
+    cena_normalny INT,
+    FOREIGN KEY (id_sztuki) REFERENCES SztukiTeatralne(id_sztuki)
 );
 
 -- Tworzenie tabeli ZamowieniaBiletow
 CREATE TABLE ZamowieniaBiletow (
     id_zamowienia SERIAL PRIMARY KEY,
-    id_biletow INT,
-    ilosc_biletow INT,
+    id_terminu INT,
+    ilosc_biletow_ulgowe INT,
+    ilosc_biletow_normalne INT,
     data_zamowienia DATE,
-    FOREIGN KEY (id_biletow) REFERENCES Bilety(bilety_id)
+    FOREIGN KEY (id_terminu) REFERENCES TerminyRealizacji(id_terminu)
 );

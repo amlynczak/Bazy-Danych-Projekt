@@ -1,15 +1,16 @@
-CREATE OR REPLACE FUNCTION zmniejsz_dostepne_bilety() RETURNS TRIGGER AS $$
+-- Tworzenie funkcji
+CREATE OR REPLACE FUNCTION aktualizuj_liczbe_biletow()
+RETURNS TRIGGER AS $$
 BEGIN
-    UPDATE Bilety
-    SET dostepne_bilety = GREATEST(dostepne_bilety - NEW.ilosc_biletow, 0)
-    WHERE bilety_id = NEW.id_biletow;
+  UPDATE TerminyRealizacji
+  SET dostepne_bilety = dostepne_bilety - NEW.ilosc_biletow_ulgowe - NEW.ilosc_biletow_normalne
+  WHERE id_terminu = NEW.id_terminu;
 
-    RETURN NEW;
+  RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger wywoływany po dodaniu nowego zamówienia biletów
-CREATE TRIGGER trigger_zmniejsz_dostepne_bilety
+CREATE TRIGGER po_wstawieniu_do_ZamowieniaBiletow
 AFTER INSERT ON ZamowieniaBiletow
 FOR EACH ROW
-EXECUTE FUNCTION zmniejsz_dostepne_bilety();
+EXECUTE FUNCTION aktualizuj_liczbe_biletow();

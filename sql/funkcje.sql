@@ -17,9 +17,9 @@ BEGIN
         ST.informator,
         R.imie_rezysera,
         R.nazwisko_rezysera,
-        B.dostepne_bilety,
-        B.cena_ulgowy,
-        B.cena_normalny,
+        TR.dostepne_bilety,
+        TR.cena_ulgowy,
+        TR.cena_normalny,
         TR.miejsce_realizacji,
         TR.data_realizacji
     FROM
@@ -28,8 +28,6 @@ BEGIN
         Rezyser R ON ST.id_rezysera = R.id_rezysera
     JOIN
         TerminyRealizacji TR ON ST.id_sztuki = TR.id_sztuki
-    JOIN
-        Bilety B ON TR.bilety_id = B.bilety_id
     WHERE
         ST.id_sztuki = SztukaPoId.id_sztuki;
 END;

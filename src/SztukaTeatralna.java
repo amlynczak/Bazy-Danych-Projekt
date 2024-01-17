@@ -11,14 +11,14 @@ public class SztukaTeatralna {
 
     public SztukaTeatralna(int id, String t, String info, Rezyser rez, String d, String miejsce, int ilosc, int ulgowy, int normalny){
         this.id = id;
-        tytul = t;
-        rezyser = rez;
-        informator = info;
-        data_realizacji = d;
-        miejsce_realizacji = miejsce;
-        ilosc_biletow = ilosc;
-        ulgowy_cena = ulgowy;
-        normalny_cena = normalny;
+        this.tytul = t;
+        this.rezyser = rez;
+        this.informator = info;
+        this.data_realizacji = d;
+        this.miejsce_realizacji = miejsce;
+        this.ilosc_biletow = ilosc;
+        this.ulgowy_cena = ulgowy;
+        this.normalny_cena = normalny;
     };
 
     public String getData(){

@@ -12,8 +12,8 @@ import java.util.Date;
 public class BothPanels extends JPanel {
     public TeatrDatabaseApp mainApp;
     private JButton pobierzHarmonogramButton;
-    private JButton zobaczRezyseraButton;
-    private JButton zobaczAktoraButton;
+    private JButton nasiRezyserowieButton;
+    private JButton nasiAktorzyButton;
     private JTable sztukiTable;
     private ArrayList<Aktor> aktorzy;
     private ArrayList<Rezyser> rezyserzy;
@@ -27,16 +27,16 @@ public class BothPanels extends JPanel {
 
         buttonPanelLeft = new JPanel(new GridLayout(4, 1));
         pobierzHarmonogramButton = new JButton("Pobierz Harmonogram");
-        zobaczAktoraButton = new JButton("Zobacz Aktorów");
-        zobaczRezyseraButton = new JButton("Zobacz Rezyserów");
+        nasiAktorzyButton = new JButton("Nasi Aktorzy");
+        nasiRezyserowieButton = new JButton("Nasi Reżyserzy");
 
         pobierzHarmonogramButton.addActionListener(e -> pobierzHarmonogram());
-        zobaczAktoraButton.addActionListener(e -> zobaczAktora());
-        zobaczRezyseraButton.addActionListener(e -> zobaczRezyser());
+        nasiAktorzyButton.addActionListener(e -> AktorzyInfo());
+        nasiRezyserowieButton.addActionListener(e -> RezyserzyInfo());
 
         buttonPanelLeft.add(pobierzHarmonogramButton);
-        buttonPanelLeft.add(zobaczAktoraButton);
-        buttonPanelLeft.add(zobaczRezyseraButton);
+        buttonPanelLeft.add(nasiAktorzyButton);
+        buttonPanelLeft.add(nasiRezyserowieButton);
 
         sztukiTable = new JTable();
         JScrollPane tableScrollPane = new JScrollPane(sztukiTable);
@@ -96,37 +96,11 @@ public class BothPanels extends JPanel {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error retrieving schedule information: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Błąd podczas pobierania harmonogramu: \n" + e.getMessage());
         }
     }
 
-    private class ButtonEditorInformator extends DefaultCellEditor {
-        private JButton button;
-
-        public ButtonEditorInformator(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton("Informator");
-            button.addActionListener(e -> {
-                int selectedRow = sztukiTable.getSelectedRow();
-                System.out.println(selectedRow);
-                if (selectedRow != -1) {
-                    showInformatorInfo(sztuki.get(selectedRow)); // Modify this line according to your requirements
-                }
-            });
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            return button;
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            return button;
-        }
-    }
-
-    private void showInformatorInfo(SztukaTeatralna sztuka) {
+    private void pokazInformator(SztukaTeatralna sztuka) {
         try {
             DataBase database = new DataBase();
             try {
@@ -160,7 +134,7 @@ public class BothPanels extends JPanel {
                     String imie_aktora = resultSet2.getString("imie_aktora");
                     String nazwisko_aktora = resultSet2.getString("nazwisko_aktora");
 
-                    message.append("Postać: ").append(postac).append(", Grana przez: ").append(imie_aktora).append(" ").append(nazwisko_aktora).append("\n");
+                    message.append("Postać: ").append(postac).append(", grana przez: ").append(imie_aktora).append(" ").append(nazwisko_aktora).append("\n");
                 }
 
                 message.append("\n\nIlość dostępnych biletów: ").append(sztuka.getIlosc_biletow()).append("\n")
@@ -175,7 +149,7 @@ public class BothPanels extends JPanel {
                 JButton purchaseButton = new JButton("Zakup Biletów");
                 panel.add(purchaseButton, BorderLayout.SOUTH);
 
-                purchaseButton.addActionListener(e -> purchaseTickets(id_sztuki));
+                purchaseButton.addActionListener(e -> zakupBilety(id_sztuki));
 
                 JOptionPane.showMessageDialog(this, panel, "Informator", JOptionPane.INFORMATION_MESSAGE);
 
@@ -184,67 +158,40 @@ public class BothPanels extends JPanel {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error retrieving informator information: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Błąd podczas pobierania informacji: \n" + e.getMessage());
         }
     }
 
-    private int getBiletyIdByTerminId(int id_terminu) {
-        int biletyId = -1; // wartość domyślna, jeśli coś pójdzie nie tak
-
+    private void zakupBilety(int id_terminu) {
+        String input_u = JOptionPane.showInputDialog(this, "Ile biletów ulgowych chcesz kupic?");
+        String input_n = JOptionPane.showInputDialog(this, "Ile biletów normalnych chcesz kupic?");
         try {
-            DataBase database = new DataBase();
-            try {
-                database.connect();
-
-                String query = "SELECT bilety_id FROM TerminyRealizacji WHERE id_terminu = ?";
-                PreparedStatement statement = database.getConnection().prepareStatement(query);
-                statement.setInt(1, id_terminu);
-
-                ResultSet resultSet = statement.executeQuery();
-
-                if (resultSet.next()) {
-                    biletyId = resultSet.getInt("bilety_id");
-                }
-            } finally {
-                database.disconnect();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            // Obsługa błędu
-        }
-
-        return biletyId;
-    }
-
-    private void purchaseTickets(int id_terminu) {
-        String input = JOptionPane.showInputDialog(this, "Ile biletów chcesz kupić?");
-        try {
-            int numberOfTickets = Integer.parseInt(input);
+            int ulgowe = Integer.parseInt(input_u);
+            int normalne = Integer.parseInt(input_n);
 
             Date currentDate = new Date();
             Timestamp timestamp = new Timestamp(currentDate.getTime());
 
-            int bilety_id = getBiletyIdByTerminId(id_terminu);
+            noweZamownienie(id_terminu, ulgowe, normalne, timestamp);
 
-            addNewOrder(bilety_id, numberOfTickets, timestamp);
-
-            JOptionPane.showMessageDialog(this, "Zakupiono " + numberOfTickets + " biletów dla terminu o ID: " + id_terminu);
+            JOptionPane.showMessageDialog(this, "Zakupiono " + ulgowe + " biletów ulgowych oraz " + normalne + " biletów normalnych.");
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Wprowadź poprawną liczbę biletów.");
         }
     }
 
-    private void addNewOrder(int id_biletow, int iloscBiletow, Timestamp dataZamowienia) {
+    private void noweZamownienie(int id_teminu, int nr_u, int nr_n, Timestamp dataZamowienia) {
         try {
             DataBase database = new DataBase();
             try {
                 database.connect();
 
-                String addOrderQuery = "INSERT INTO ZamowieniaBiletow (id_biletow, ilosc_biletow, data_zamowienia) VALUES (?, ?, ?)";
+                String addOrderQuery = "INSERT INTO ZamowieniaBiletow (id_terminu, ilosc_biletow_ulgowe, ilosc_biletow_normalne, data_zamowienia) VALUES (?, ?, ?, ?)";
                 PreparedStatement addOrderStatement = database.getConnection().prepareStatement(addOrderQuery);
-                addOrderStatement.setInt(1, id_biletow);
-                addOrderStatement.setInt(2, iloscBiletow);
-                addOrderStatement.setTimestamp(3, dataZamowienia);
+                addOrderStatement.setInt(1, id_teminu);
+                addOrderStatement.setInt(2, nr_u);
+                addOrderStatement.setInt(3, nr_n);
+                addOrderStatement.setTimestamp(4, dataZamowienia);
 
                 int rowsAffected = addOrderStatement.executeUpdate();
 
@@ -263,7 +210,7 @@ public class BothPanels extends JPanel {
     }
 
 
-    private void zobaczAktora() {
+    private void AktorzyInfo() {
         try {
             DataBase database = new DataBase();
 
@@ -279,7 +226,7 @@ public class BothPanels extends JPanel {
                 DefaultTableModel model = new DefaultTableModel() {
                     @Override
                     public boolean isCellEditable(int row, int column) {
-                        return column == 2; // Make only the button column editable
+                        return column == 2;
                     }
                 };
                 model.addColumn("Imię");
@@ -301,7 +248,6 @@ public class BothPanels extends JPanel {
 
                 sztukiTable.setModel(model);
 
-                // Set custom renderer and editor for the button column
                 sztukiTable.getColumnModel().getColumn(2).setCellRenderer(new ButtonRenderer());
                 sztukiTable.getColumnModel().getColumn(2).setCellEditor(new ButtonEditorAktor(new JCheckBox()));
 
@@ -315,67 +261,7 @@ public class BothPanels extends JPanel {
         }
     }
 
-    private class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer() {
-            setOpaque(true);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-            return this;
-        }
-    }
-
-    private class ButtonEditorAktor extends DefaultCellEditor {
-        private JButton button;
-
-        public ButtonEditorAktor(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton("Informacje");
-            button.addActionListener(e -> {
-                int selectedRow = sztukiTable.getSelectedRow();
-                if (selectedRow != -1) {
-                    showAktorInfo(aktorzy.get(selectedRow));
-                }
-            });
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            return button;
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            return button;
-        }
-    }
-
-    private class ButtonEditorRezyser extends DefaultCellEditor {
-        private JButton button;
-
-        public ButtonEditorRezyser(JCheckBox checkBox) {
-            super(checkBox);
-            button = new JButton("Informacje");
-            button.addActionListener(e -> {
-                int selectedRow = sztukiTable.getSelectedRow();
-                if (selectedRow != -1) {
-                    showRezyserInfo(rezyserzy.get(selectedRow));
-                }
-            });
-        }
-
-        @Override
-        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-            return button;
-        }
-
-        @Override
-        public Object getCellEditorValue() {
-            return button;
-        }
-    }
-    private void showAktorInfo(Aktor aktor) {
+    private void AktorInfo(Aktor aktor) {
         try {
             DataBase database = new DataBase();
             try {
@@ -400,18 +286,18 @@ public class BothPanels extends JPanel {
                             .append("grana postać: ").append(characterPlayed).append("\n\n");
                 }
 
-                JOptionPane.showMessageDialog(this, message.toString(), "Actor Information", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, message.toString(), "Informacje o aktorze", JOptionPane.INFORMATION_MESSAGE);
 
             } finally {
                 database.disconnect();
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error retrieving actor information: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Błąd podczas pobierania informacji o aktorze: \n" + e.getMessage());
         }
     }
 
-    private void zobaczRezyser() {
+    private void RezyserzyInfo() {
         try {
             DataBase database = new DataBase();
 
@@ -461,7 +347,7 @@ public class BothPanels extends JPanel {
         }
     }
 
-    private void showRezyserInfo(Rezyser rezyser) {
+    private void RezyserInfo(Rezyser rezyser) {
         try {
             DataBase database = new DataBase();
             try {
@@ -484,14 +370,101 @@ public class BothPanels extends JPanel {
                     message.append(playTitle).append("\n\n");
                 }
 
-                JOptionPane.showMessageDialog(this, message.toString(), "Director Information", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, message.toString(), "Informacje o reżyserze", JOptionPane.INFORMATION_MESSAGE);
 
             } finally {
                 database.disconnect();
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Error retrieving director information: " + e.getMessage());
+            JOptionPane.showMessageDialog(this, "Błąd podczas pobierania informacji o reżyserze: " + e.getMessage());
+        }
+    }
+
+    private class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            return this;
+        }
+    }
+
+    private class ButtonEditorAktor extends DefaultCellEditor {
+        private JButton button;
+
+        public ButtonEditorAktor(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton("Informacje");
+            button.addActionListener(e -> {
+                int selectedRow = sztukiTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    AktorInfo(aktorzy.get(selectedRow));
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return button;
+        }
+    }
+
+    private class ButtonEditorRezyser extends DefaultCellEditor {
+        private JButton button;
+
+        public ButtonEditorRezyser(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton("Informacje");
+            button.addActionListener(e -> {
+                int selectedRow = sztukiTable.getSelectedRow();
+                if (selectedRow != -1) {
+                    RezyserInfo(rezyserzy.get(selectedRow));
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return button;
+        }
+    }
+
+    private class ButtonEditorInformator extends DefaultCellEditor {
+        private JButton button;
+
+        public ButtonEditorInformator(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton("Informator");
+            button.addActionListener(e -> {
+                int selectedRow = sztukiTable.getSelectedRow();
+                System.out.println(selectedRow);
+                if (selectedRow != -1) {
+                    pokazInformator(sztuki.get(selectedRow));
+                }
+            });
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            return button;
         }
     }
 }

@@ -7,7 +7,7 @@ public class TeatrDatabaseApp extends JFrame {
     private PostLogin postLoginPanel;
 
     public TeatrDatabaseApp() {
-        setTitle("Teatr Database App");
+        setTitle("Baza Danych Teatr - projekt @Adam Młyńzak");
         setSize(800, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 

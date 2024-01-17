@@ -17,7 +17,7 @@ public class DataBase {
             c = DriverManager.getConnection(url, user, pass);
             System.out.println("Połączono!");
         } catch (SQLException e) {
-            System.out.println("Brak połączenia! " + e);
+            System.out.println("Brak połączenia! \n" + e);
             System.exit(1);
         }
     }
@@ -31,7 +31,7 @@ public class DataBase {
                 c.close();
                 System.out.println("Rozłączono!");
             } catch (SQLException e) {
-                System.out.println("Błąd podczas zamykania połączenia: " + e);
+                System.out.println("Błąd podczas zamykania połączenia: \n" + e);
             }
         }
     }
@@ -68,7 +68,7 @@ public class DataBase {
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Błąd podczas tworzenia tabeli: " + e.getMessage());
+            System.out.println("Błąd podczas tworzenia tabeli: \n" + e.getMessage());
             return false;
         } finally {
             disconnect();
@@ -97,7 +97,7 @@ public class DataBase {
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Błąd podczas dodawania danych: " + e.getMessage());
+            System.out.println("Błąd podczas dodawania danych: \n" + e.getMessage());
             return false;
         } finally {
             disconnect();
@@ -126,7 +126,7 @@ public class DataBase {
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Błąd podczas dodawania funkcji: " + e.getMessage());
+            System.out.println("Błąd podczas dodawania funkcji: \n" + e.getMessage());
             return false;
         } finally {
             disconnect();
@@ -155,7 +155,7 @@ public class DataBase {
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Błąd podczas dodawania triggera: " + e.getMessage());
+            System.out.println("Błąd podczas dodawania triggera: \n" + e.getMessage());
             return false;
         } finally {
             disconnect();
@@ -184,7 +184,7 @@ public class DataBase {
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Błąd podczas dodawania widoków: " + e.getMessage());
+            System.out.println("Błąd podczas dodawania widoków: \n" + e.getMessage());
             return false;
         } finally {
             disconnect();
@@ -213,7 +213,7 @@ public class DataBase {
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
-            System.out.println("Błąd podczas usuwania danych: " + e.getMessage());
+            System.out.println("Błąd podczas usuwania danych: \n" + e.getMessage());
             return false;
         } finally {
             disconnect();
