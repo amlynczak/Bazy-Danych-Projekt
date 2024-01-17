@@ -22,3 +22,10 @@ FROM ZamowieniaBiletow zb
 JOIN TerminyRealizacji tr ON zb.id_terminu = tr.id_terminu
 JOIN SztukiTeatralne s ON s.id_sztuki = tr.id_sztuki
 ORDER BY zb.data_zamowienia DESC;
+
+CREATE OR REPLACE VIEW Ilosc_Sprzedanych_Biletow AS
+SELECT
+    SUM(ilosc_biletow_ulgowe) AS ilosc_sprzedanych_ulgowych,
+    SUM(ilosc_biletow_normalne) AS ilosc_sprzedanych_normalnych,
+    SUM(ilosc_biletow_ulgowe + ilosc_biletow_normalne) AS ilosc_sprzedanych_ogolnie
+FROM ZamowieniaBiletow;

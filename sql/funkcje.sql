@@ -35,7 +35,7 @@ $$ LANGUAGE plpgsql;
 
 
 
-CREATE OR REPLACE FUNCTION GetPlaysForActor(actor_id INT)
+CREATE OR REPLACE FUNCTION SztukiDanegoAktora(actor_id INT)
 RETURNS TABLE (
     play_id INT,
     play_title VARCHAR(255),

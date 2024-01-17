@@ -8,6 +8,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 public class BothPanels extends JPanel {
     public TeatrDatabaseApp mainApp;
@@ -20,7 +23,7 @@ public class BothPanels extends JPanel {
     private ArrayList<SztukaTeatralna> sztuki;
     public JPanel buttonPanelLeft;
     public JPanel buttonPanelRight;
-
+    public JPanel infoPanel;
     public BothPanels(TeatrDatabaseApp app){
         mainApp = app;
         setLayout(new BorderLayout());
@@ -45,9 +48,13 @@ public class BothPanels extends JPanel {
         add(buttonPanelLeft, BorderLayout.WEST);
         add(tableScrollPane, BorderLayout.CENTER);
         add(buttonPanelRight, BorderLayout.EAST);
+
+        infoPanel = new JPanel(new BorderLayout());
+        add(infoPanel, BorderLayout.SOUTH);
     }
 
     private void pobierzHarmonogram() {
+        infoPanel.setVisible(false);
         try {
             DataBase database = new DataBase();
             sztuki = new ArrayList<>();
@@ -116,11 +123,11 @@ public class BothPanels extends JPanel {
 
                 StringBuilder message = new StringBuilder();
                 message.append("Informacje o sztuce: \n")
-                        .append("tytul: ").append(sztuka.getTytul()).append("\n")
+                        .append("Tytuł: ").append(sztuka.getTytul()).append("\n")
                         .append(sztuka.getInformator()).append("\n")
-                        .append("rezyser: ").append(sztuka.getRezyser().toString()).append("\n")
-                        .append("miejsce realizacji: ").append(sztuka.getMiejsce()).append("\n")
-                        .append("data: ").append(sztuka.getData()).append("\n")
+                        .append("Reżyser: ").append(sztuka.getRezyser().toString()).append("\n")
+                        .append("Miejsce realizacji: ").append(sztuka.getMiejsce()).append("\n")
+                        .append("Data: ").append(sztuka.getData()).append("\n")
                         .append("\nObsada\n");
 
                 database.disconnect();
@@ -148,12 +155,19 @@ public class BothPanels extends JPanel {
                 textArea.setEditable(false);
                 panel.add(new JScrollPane(textArea), BorderLayout.CENTER);
 
+                JPanel buttonPanel = new JPanel(new FlowLayout());  // Zmiana na FlowLayout
                 JButton purchaseButton = new JButton("Zakup Biletów");
-                panel.add(purchaseButton, BorderLayout.SOUTH);
-
+                buttonPanel.add(purchaseButton);
                 purchaseButton.addActionListener(e -> zakupBilety(id_sztuki));
 
+                JButton saveToFileButton = new JButton("Zapisz informator do pliku");
+                buttonPanel.add(saveToFileButton);
+                saveToFileButton.addActionListener(e -> zapiszInformatorDoPliku(sztuka, message.toString()));
+
+                panel.add(buttonPanel, BorderLayout.SOUTH);  // Dodane do panelu z użyciem BorderLayout
+
                 JOptionPane.showMessageDialog(this, panel, "Informator", JOptionPane.INFORMATION_MESSAGE);
+
 
             } finally {
                 database.disconnect();
@@ -179,6 +193,25 @@ public class BothPanels extends JPanel {
             JOptionPane.showMessageDialog(this, "Zakupiono " + ulgowe + " biletów ulgowych oraz " + normalne + " biletów normalnych.");
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(this, "Wprowadź poprawną liczbę biletów.");
+        }
+    }
+
+    private void zapiszInformatorDoPliku(SztukaTeatralna sztuka, String informatorText) {
+        try {
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Wybierz miejsce do zapisania informatora");
+            int userSelection = fileChooser.showSaveDialog(this);
+
+            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                File fileToSave = fileChooser.getSelectedFile();
+                FileWriter writer = new FileWriter(fileToSave);
+                writer.write(informatorText);
+                writer.close();
+                JOptionPane.showMessageDialog(this, "Informator zapisany do pliku.");
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(this, "Błąd podczas zapisywania informatora do pliku: " + ex.getMessage());
         }
     }
 
@@ -213,6 +246,7 @@ public class BothPanels extends JPanel {
 
 
     private void AktorzyInfo() {
+        infoPanel.setVisible(false);
         try {
             DataBase database = new DataBase();
 
@@ -269,7 +303,7 @@ public class BothPanels extends JPanel {
             try {
                 database.connect();
 
-                String query = "SELECT * FROM GetPlaysForActor(?)";
+                String query = "SELECT * FROM SztukiDanegoAktora(?)";
                 PreparedStatement preparedStatement = database.getConnection().prepareStatement(query);
                 preparedStatement.setInt(1, aktor.getId());
                 ResultSet resultSet = preparedStatement.executeQuery();
@@ -300,6 +334,7 @@ public class BothPanels extends JPanel {
     }
 
     private void RezyserzyInfo() {
+        infoPanel.setVisible(false);
         try {
             DataBase database = new DataBase();
 
@@ -452,7 +487,6 @@ public class BothPanels extends JPanel {
             button = new JButton("Informator");
             button.addActionListener(e -> {
                 int selectedRow = sztukiTable.getSelectedRow();
-                System.out.println(selectedRow);
                 if (selectedRow != -1) {
                     pokazInformator(sztuki.get(selectedRow));
                 }

@@ -1,6 +1,3 @@
-DROP TRIGGER IF EXISTS trigger_zmniejsz_dostepne_bilety ON ZamowieniaBiletow;
-DROP FUNCTION IF EXISTS zmiejsz_dostepne_bilety();
-
 -- Usuwanie tabeli
 DROP TABLE IF EXISTS SztukiTeatralne CASCADE;
 DROP TABLE IF EXISTS ObsadaSztuki CASCADE;

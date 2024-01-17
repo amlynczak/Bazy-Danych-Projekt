@@ -53,6 +53,7 @@ public class PostLogin extends BothPanels {
     }
 
     private void dodajSztuke() {
+        infoPanel.setVisible(false);
         try {
             JPanel panel = new JPanel(new GridLayout(5, 2));
             JTextField tytulField = new JTextField();
@@ -130,6 +131,7 @@ public class PostLogin extends BothPanels {
     }
 
     private void dodajObsade() {
+        infoPanel.setVisible(false);
         try {
             JPanel panel = new JPanel(new GridLayout(5, 2));
 
@@ -225,6 +227,7 @@ public class PostLogin extends BothPanels {
     }
 
     private void noweTerminy() {
+        infoPanel.setVisible(false);
         try {
             JPanel panel = new JPanel(new GridLayout(6, 2));
 
@@ -322,6 +325,7 @@ public class PostLogin extends BothPanels {
 
 
     private void nowyAktor() {
+        infoPanel.setVisible(false);
         try {
             JPanel panel = new JPanel(new GridLayout(2, 2));
             JTextField imieField = new JTextField();
@@ -379,6 +383,7 @@ public class PostLogin extends BothPanels {
 
     private void nowyRezyser(){
         try {
+            infoPanel.setVisible(false);
             JPanel panel = new JPanel(new GridLayout(2, 2));
             JTextField imieField = new JTextField();
             JTextField nazwiskoField = new JTextField();
@@ -463,6 +468,30 @@ public class PostLogin extends BothPanels {
                 }
 
                 sztukiTable.setModel(model);
+
+                query = "SELECT * FROM Ilosc_Sprzedanych_Biletow";
+                statement = database.getConnection().prepareStatement(query);
+                resultSet = statement.executeQuery();
+
+                JTextArea tekstPodTabela = new JTextArea();
+                tekstPodTabela.setEditable(false);
+                if (resultSet.next()) {
+                    int iloscUlgowe = resultSet.getInt("ilosc_sprzedanych_ulgowych");
+                    int iloscNormalne = resultSet.getInt("ilosc_sprzedanych_normalnych");
+                    int sumaWszystkich = resultSet.getInt("ilosc_sprzedanych_ogolnie");
+
+                    tekstPodTabela.append(String.format("Ilość sprzedanych biletów ulgowych: %d\n", iloscUlgowe));
+                    tekstPodTabela.append(String.format("Ilość sprzedanych biletów normalnych: %d\n", iloscNormalne));
+                    tekstPodTabela.append(String.format("Suma wszystkich sprzedanych biletów: %d\n", sumaWszystkich));
+                } else {
+                    tekstPodTabela.append("Brak dostępnych informacji.\n");
+                }
+
+                infoPanel.removeAll();
+                infoPanel.add(new JScrollPane(tekstPodTabela), BorderLayout.CENTER);
+                infoPanel.setVisible(true);
+                infoPanel.revalidate();
+                infoPanel.repaint();
 
             } finally {
                 database.disconnect();
