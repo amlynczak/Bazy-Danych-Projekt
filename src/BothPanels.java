@@ -24,6 +24,7 @@ public class BothPanels extends JPanel {
     public JPanel buttonPanelLeft;
     public JPanel buttonPanelRight;
     public JPanel infoPanel;
+    public JPanel panelPanel;
     public BothPanels(TeatrDatabaseApp app){
         mainApp = app;
         setLayout(new BorderLayout());
@@ -51,6 +52,9 @@ public class BothPanels extends JPanel {
 
         infoPanel = new JPanel(new BorderLayout());
         add(infoPanel, BorderLayout.SOUTH);
+
+        panelPanel = new JPanel(new BorderLayout());
+        add(panelPanel, BorderLayout.NORTH);
     }
 
     private void pobierzHarmonogram() {

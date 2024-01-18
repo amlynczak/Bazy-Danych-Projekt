@@ -6,7 +6,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.text.SimpleDateFormat;
-import java.sql.Statement;
 import java.util.Date;
 
 public class PostLogin extends BothPanels {
@@ -50,6 +49,13 @@ public class PostLogin extends BothPanels {
         buttonPanelRight.add(nowyRezyserButton);
         buttonPanelRight.add(zamowieniaButton);
         buttonPanelRight.add(restartButton);
+
+        panelPanel.removeAll();
+        JTextArea tekst = new JTextArea("Panel pracownika");
+        panelPanel.add(new JScrollPane(tekst), BorderLayout.CENTER);
+        panelPanel.setVisible(true);
+        panelPanel.revalidate();
+        panelPanel.repaint();
     }
 
     private void dodajSztuke() {
