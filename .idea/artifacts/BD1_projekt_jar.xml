@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="BD1-projekt:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/BD1_projekt_jar</output-path>
+    <root id="archive" name="BD1-projekt.jar">
+      <element id="module-output" name="BD1-projekt" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/src/postgresql-42.2.27.jre7.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
