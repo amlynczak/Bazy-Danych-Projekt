@@ -9,9 +9,9 @@ import java.sql.Statement;
 public class DataBase {
     private Connection c = null;
     public DataBase() {
-        String url = "jdbc:postgresql://balarama.db.elephantsql.com:5432/rfbrrvpp";
-        String user = "rfbrrvpp";
-        String pass = "mYvNAQeY_1dwl7Vc2UoyNDOAAqr-CK61";
+        String url = "jdbc:postgresql://***";
+        String user = "***";
+        String pass = "***";
 
         try {
             c = DriverManager.getConnection(url, user, pass);
@@ -38,9 +38,9 @@ public class DataBase {
 
     public void connect() throws SQLException {
         if (c == null || c.isClosed()) {
-            String url = "jdbc:postgresql://balarama.db.elephantsql.com:5432/rfbrrvpp";
-            String user = "rfbrrvpp";
-            String pass = "mYvNAQeY_1dwl7Vc2UoyNDOAAqr-CK61";
+            String url = "jdbc:postgresql://***";
+            String user = "***";
+            String pass = "***";
             c = DriverManager.getConnection(url, user, pass);
             System.out.println("Połączono!");
         }
